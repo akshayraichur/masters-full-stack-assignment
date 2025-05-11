@@ -1,5 +1,7 @@
 import React from "react";
 import styled from "styled-components";
+import { UserContext } from "../store/UserAuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
 	background: ${({ theme }) => theme.background.primary};
@@ -28,6 +30,16 @@ const MetricCard = styled.div`
 `;
 
 export default function Dashboard() {
+	const { user } = React.useContext(UserContext);
+	const navigate = useNavigate();
+
+	React.useEffect(() => {
+		if (!user) {
+			navigate("/login");
+			return;
+		}
+	}, [user]);
+
 	return (
 		<Wrapper>
 			<Title>Welcome, School Coordinator</Title>

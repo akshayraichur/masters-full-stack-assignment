@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { UserContext } from "../store/UserAuthContext";
 
 const Wrapper = styled.div`
 	background: ${({ theme }) => theme.background.primary};
@@ -95,6 +97,16 @@ export default function Students() {
 		// simulate adding student
 		alert("Student added (simulate logic)");
 	};
+
+	const { user } = React.useContext(UserContext);
+	const navigate = useNavigate();
+
+	React.useEffect(() => {
+		if (!user) {
+			navigate("/login");
+			return;
+		}
+	}, [user]);
 
 	return (
 		<Wrapper>

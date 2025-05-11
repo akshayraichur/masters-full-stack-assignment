@@ -1,13 +1,16 @@
 import { Theme } from "./theme/ThemeProvider";
 import RoutePaths from "./routes";
 import Navbar from "./components/Navbar";
+import UserAuthContext from "./store/UserAuthContext";
 
 function App() {
 	return (
-		<Theme>
-			<Navbar />
-			<RoutePaths />
-		</Theme>
+		<UserAuthContext>
+			<Theme>
+				<Navbar />
+				<RoutePaths />
+			</Theme>
+		</UserAuthContext>
 	);
 }
 

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../store/UserAuthContext";
 
 const Wrapper = styled.div`
 	min-height: 100vh;
@@ -64,6 +65,15 @@ const Button = styled.button`
 
 export default function HomePage() {
 	const navigate = useNavigate();
+
+	const { user } = React.useContext(UserContext);
+
+	React.useEffect(() => {
+		if (!user) {
+			navigate("/login");
+			return;
+		}
+	}, [user]);
 
 	return (
 		<Wrapper>

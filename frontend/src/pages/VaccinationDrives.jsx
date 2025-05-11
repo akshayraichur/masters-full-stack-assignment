@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../store/UserAuthContext";
 
 const Wrapper = styled.div`
 	background: ${({ theme }) => theme.background.primary};
@@ -80,6 +82,16 @@ const Td = styled.td`
 `;
 
 export default function Drives() {
+	const { user } = React.useContext(UserContext);
+	const navigate = useNavigate();
+
+	React.useEffect(() => {
+		if (!user) {
+			navigate("/login");
+			return;
+		}
+	}, [user]);
+
 	const [form, setForm] = useState({
 		name: "",
 		date: "",
@@ -104,6 +116,8 @@ export default function Drives() {
 		},
 	]);
 
+	const [editDrive, setEditDrive] = useState(false);
+
 	const handleChange = (e) => {
 		setForm({ ...form, [e.target.name]: e.target.value });
 	};
@@ -111,22 +125,33 @@ export default function Drives() {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 
-		const today = dayjs();
-		const scheduledDate = dayjs(form.date);
-		const diffDays = scheduledDate.diff(today, "day");
+		if (editDrive) {
+			// update drive
+		} else {
+			// create drive
 
-		if (diffDays < 15) {
-			alert("Drive must be scheduled at least 15 days in advance.");
-			return;
+			const today = dayjs();
+			const scheduledDate = dayjs(form.date);
+			const diffDays = scheduledDate.diff(today, "day");
+
+			if (diffDays < 15) {
+				alert("Drive must be scheduled at least 15 days in advance.");
+				return;
+			}
+
+			const newDrive = {
+				...form,
+				id: Date.now(),
+			};
+			setDrives([...drives, newDrive]);
+			alert("Drive created (simulated).");
+			setForm({ name: "", date: "", doses: "", classes: "" });
 		}
+	};
 
-		const newDrive = {
-			...form,
-			id: Date.now(),
-		};
-		setDrives([...drives, newDrive]);
-		alert("Drive created (simulated).");
-		setForm({ name: "", date: "", doses: "", classes: "" });
+	const handleEdit = (drive) => () => {
+		setForm(drive);
+		setEditDrive(true);
 	};
 
 	return (
@@ -152,7 +177,7 @@ export default function Drives() {
 						onChange={handleChange}
 					/>
 
-					<Button type='submit'>Create Drive</Button>
+					<Button type='submit'>{editDrive ? "Update Drive" : "Create Drive"}</Button>
 				</Form>
 
 				{/* Upcoming Drives Table */}
@@ -163,7 +188,7 @@ export default function Drives() {
 							<Th>Date</Th>
 							<Th>Doses</Th>
 							<Th>Classes</Th>
-							<Th>Editable?</Th>
+							<Th>Edit</Th>
 						</tr>
 					</thead>
 					<tbody>
@@ -173,7 +198,9 @@ export default function Drives() {
 								<Td>{d.date}</Td>
 								<Td>{d.doses}</Td>
 								<Td>{d.classes}</Td>
-								<Td>{dayjs(d.date).isAfter(dayjs()) ? "✅" : "❌"}</Td>
+								<Td>
+									<Button onClick={handleEdit(d)}>Edit</Button>
+								</Td>
 							</tr>
 						))}
 					</tbody>
