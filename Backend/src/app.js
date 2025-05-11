@@ -35,6 +35,11 @@ app.use((req, res, next) => {
 app.use("/v1/auth", authenticationRoutes);
 app.use("/v1/drives", vaccinationDrivesRoutes);
 
-app.listen(3010, () => {
-	console.log("Server is running on port 3010");
+mongoose.connect(process.env.MONGO_URI, {
+	useNewUrlParser: true,
+	useUnifiedTopology: true,
+});
+
+app.listen(process.env.PORT, () => {
+	console.log(`Server is running on port ${process.env.PORT}`);
 });
