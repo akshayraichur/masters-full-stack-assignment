@@ -31,9 +31,9 @@ app.use((req, res, next) => {
 	next();
 });
 
-// Routes
-app.use("/auth", authenticationRoutes);
-app.use("/vaccination-drives", vaccinationDrivesRoutes);
+// Routes with versioning
+app.use("/v1/auth", authenticationRoutes);
+app.use("/v1/drives", vaccinationDrivesRoutes);
 
 app.listen(3010, () => {
 	console.log("Server is running on port 3010");

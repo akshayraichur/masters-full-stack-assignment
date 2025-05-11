@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useContext, useEffect } from "react";
 import styled from "styled-components";
 import { UserContext } from "../store/UserAuthContext";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Wrapper = styled.div`
 	background: ${({ theme }) => theme.background.primary};
@@ -30,7 +31,13 @@ const MetricCard = styled.div`
 `;
 
 export default function Dashboard() {
-	const { user } = React.useContext(UserContext);
+	const [drivesInfo, setDrivesInfo] = useState({
+		totalStudents: 0,
+		vaccinatedStudents: 0,
+		upcomingDrives: 0,
+	});
+
+	const { user } = useContext(UserContext);
 	const navigate = useNavigate();
 
 	React.useEffect(() => {
@@ -39,6 +46,25 @@ export default function Dashboard() {
 			return;
 		}
 	}, [user]);
+
+	const fetchUpcomingDrives = async () => {
+		try {
+			const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/drives/upcoming`);
+
+			if (response.data.status) {
+				setDrivesInfo((prevState) => ({ ...prevState, upcomingDrives: response.data.data.length }));
+			}
+		} catch (error) {
+			console.log(error);
+			setDrivesInfo((prevState) => ({ ...prevState, upcomingDrives: 0 }));
+		}
+	};
+
+	useEffect(() => {
+		//
+
+		fetchUpcomingDrives();
+	}, []);
 
 	return (
 		<Wrapper>
@@ -54,7 +80,7 @@ export default function Dashboard() {
 				</MetricCard>
 				<MetricCard>
 					<h3>Upcoming Drives</h3>
-					<p>2 drives in next 30 days</p>
+					<p>{drivesInfo.upcomingDrives} drives in next 30 days</p>
 				</MetricCard>
 			</MetricsGrid>
 		</Wrapper>
