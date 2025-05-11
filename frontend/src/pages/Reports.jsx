@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { UserContext } from "../store/UserAuthContext";
+import axios from "axios";
+import dayjs from "dayjs";
+import { Select } from "antd";
+import { VaccinationReportTable } from "../components/VaccinationReportTable";
 
 const Wrapper = styled.div`
 	background: ${({ theme }) => theme.background.primary};
@@ -28,19 +32,6 @@ const Label = styled.label`
 	margin-bottom: 0.25rem;
 `;
 
-const Select = styled.select`
-	padding: 0.75rem;
-	width: 100%;
-	border: 1px solid ${({ theme }) => theme.border};
-	border-radius: 0.5rem;
-	font-size: 1rem;
-
-	&:focus {
-		border-color: ${({ theme }) => theme.colors.accent};
-		outline: none;
-	}
-`;
-
 const Button = styled.button`
 	margin-top: 1rem;
 	background-color: ${({ theme }) => theme.colors.accent};
@@ -56,25 +47,6 @@ const Button = styled.button`
 	}
 `;
 
-const Table = styled.table`
-	width: 100%;
-	border-collapse: collapse;
-	background: ${({ theme }) => theme.background.card};
-`;
-
-const Th = styled.th`
-	padding: 1rem;
-	border-bottom: 1px solid ${({ theme }) => theme.border};
-	text-align: left;
-	color: ${({ theme }) => theme.colors.primary};
-`;
-
-const Td = styled.td`
-	padding: 0.75rem 1rem;
-	border-bottom: 1px solid ${({ theme }) => theme.border};
-	color: ${({ theme }) => theme.colors.secondary};
-`;
-
 const Pagination = styled.div`
 	margin-top: 1rem;
 	display: flex;
@@ -84,31 +56,52 @@ const Pagination = styled.div`
 
 export default function Reports() {
 	const [vaccineFilter, setVaccineFilter] = useState("");
+	const [drives, setDrives] = useState([]);
+	const [reportData, setReportData] = useState([]);
 
-	const handleDownload = () => {
-		alert("Simulate: Export to CSV or PDF");
+	const handleDownload = async () => {
+		try {
+			const response = await axios.get(
+				`${import.meta.env.VITE_APP_API_URL}/drives/report/?vaccineName=${vaccineFilter}`
+			);
+			const responseData = response.data.data;
+			setReportData(responseData);
+		} catch (error) {
+			console.log(error);
+		}
 	};
-
-	const reportData = [
-		{
-			id: "S001",
-			name: "Ananya",
-			vaccine: "Hepatitis B",
-			date: "2025-03-10",
-			status: "Vaccinated",
-		},
-		{ id: "S002", name: "Rohit", vaccine: "Polio", date: "2025-03-15", status: "Vaccinated" },
-	];
 
 	const { user } = React.useContext(UserContext);
 	const navigate = useNavigate();
 
-	React.useEffect(() => {
+	const getVaccinationDrives = async () => {
+		try {
+			const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/drives/upcoming`);
+			const responseData = response.data.data;
+			setDrives(
+				responseData.map((drive) => ({
+					id: drive.id,
+					name: drive.name,
+					date: dayjs(drive.date).format("DD-MM-YYYY"),
+					doses: drive.dosesCount,
+					classes: drive.applicableClasses.join(", ") || "All",
+				}))
+			);
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
+	useEffect(() => {
 		if (!user) {
 			navigate("/login");
 			return;
 		}
 	}, [user]);
+
+	useEffect(() => {
+		getVaccinationDrives();
+	}, []);
 
 	return (
 		<Wrapper>
@@ -118,44 +111,23 @@ export default function Reports() {
 				<Label htmlFor='vaccine'>Filter by Vaccine</Label>
 				<Select
 					id='vaccine'
+					style={{ width: "100%" }}
 					value={vaccineFilter}
-					onChange={(e) => setVaccineFilter(e.target.value)}>
-					<option value=''>All Vaccines</option>
-					<option value='Hepatitis B'>Hepatitis B</option>
-					<option value='Polio'>Polio</option>
-					<option value='Tetanus'>Tetanus</option>
+					onChange={(e) => {
+						setVaccineFilter(e);
+						console.log(e);
+					}}>
+					{drives.map((drive) => (
+						<option value={drive.name} key={drive.name}>
+							{drive.name}
+						</option>
+					))}
 				</Select>
 
 				<Button onClick={handleDownload}>Download Report</Button>
 			</FilterSection>
 
-			<Table>
-				<thead>
-					<tr>
-						<Th>Student ID</Th>
-						<Th>Name</Th>
-						<Th>Vaccine</Th>
-						<Th>Date</Th>
-						<Th>Status</Th>
-					</tr>
-				</thead>
-				<tbody>
-					{reportData.map((s) => (
-						<tr key={s.id}>
-							<Td>{s.id}</Td>
-							<Td>{s.name}</Td>
-							<Td>{s.vaccine}</Td>
-							<Td>{s.date}</Td>
-							<Td>{s.status}</Td>
-						</tr>
-					))}
-				</tbody>
-			</Table>
-
-			<Pagination>
-				<Button>Prev</Button>
-				<Button>Next</Button>
-			</Pagination>
+			<VaccinationReportTable reportData={reportData} />
 		</Wrapper>
 	);
 }

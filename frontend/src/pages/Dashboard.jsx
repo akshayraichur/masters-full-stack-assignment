@@ -110,7 +110,7 @@ export default function Dashboard() {
 				<MetricCard>
 					<h3>Total Vaccination</h3>
 					<p>
-						{drivesInfo.vaccinatedStudents || 0} ({drivesInfo.vaccinationPercentage || 0}% )
+						{drivesInfo.vaccinatedStudents || 0} ({drivesInfo.vaccinationPercentage || 0})
 					</p>
 				</MetricCard>
 				<MetricCard>

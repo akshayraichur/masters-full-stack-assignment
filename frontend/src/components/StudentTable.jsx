@@ -52,7 +52,7 @@ const StudentTable = ({ handleEdit, updateStudents }) => {
 			setStudents(studentData);
 		} catch (error) {
 			console.error(error);
-			message.error("Failed to fetch data");
+			message.error(error.response.data.message || "Failed to fetch data");
 		}
 	};
 
