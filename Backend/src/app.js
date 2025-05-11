@@ -1,8 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
+
 const authenticationRoutes = require("./routes/authentication.routes");
-require("dotenv").config();
 const vaccinationDrivesRoutes = require("./routes/vaccinationDrives.routes");
+const studentRoutes = require("./routes/student.routes");
+
+require("dotenv").config();
 
 const app = express();
 
@@ -34,6 +37,7 @@ app.use((req, res, next) => {
 // Routes with versioning
 app.use("/v1/auth", authenticationRoutes);
 app.use("/v1/drives", vaccinationDrivesRoutes);
+app.use("/v1/students", studentRoutes);
 
 mongoose.connect(process.env.MONGO_URI, {
 	useNewUrlParser: true,

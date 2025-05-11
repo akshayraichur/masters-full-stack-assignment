@@ -10,11 +10,6 @@ const studentSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
-	email: {
-		type: String,
-		required: true,
-		unique: true,
-	},
 	class: {
 		type: String,
 		required: true,
@@ -22,10 +17,12 @@ const studentSchema = new mongoose.Schema({
 	vaccination_status: {
 		type: Boolean,
 		required: true,
+		default: false,
 	},
 	vaccination_drives: {
 		type: [mongoose.Schema.Types.ObjectId],
 		ref: "VaccinationDrive",
+		default: [],
 	},
 });
 

@@ -2,13 +2,25 @@ const VaccinationDriveModal = require("../models/VaccinationDrives");
 
 const createVaccinationDrive = async (req, res) => {
 	const { name, date, dosesCount, applicableClasses } = req.body;
-	const vaccinationDrive = await VaccinationDriveModal.create({
-		name,
-		date,
-		dosesCount,
-		applicableClasses,
-	});
-	res.status(201).json(vaccinationDrive);
+	try {
+		const vaccinationDrive = await VaccinationDriveModal.create({
+			name,
+			date,
+			dosesCount,
+			applicableClasses,
+		});
+		res.status(201).json({
+			message: "Vaccination drive created successfully",
+			status: true,
+			data: vaccinationDrive,
+		});
+	} catch (error) {
+		res.status(500).json({
+			message: "Something went wrong",
+			status: false,
+			error: error.message,
+		});
+	}
 };
 
 const getVaccinationDrives = async (_, res) => {
