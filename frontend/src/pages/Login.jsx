@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../store/UserAuthContext";
 import axios from "axios";
+import { message } from "antd";
 
 const LoginWrapper = styled.div`
 	min-height: 100vh;
@@ -89,6 +90,7 @@ export default function LoginPage() {
 				localStorage.setItem("school_admin", username);
 				loginHandler({ name: username });
 				navigate("/dashboard");
+				message.success("Login successful");
 			}
 		} catch (error) {
 			console.log(error);

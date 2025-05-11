@@ -3,6 +3,7 @@ import styled from "styled-components";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../store/UserAuthContext";
+import axios from "axios";
 
 const Wrapper = styled.div`
 	background: ${({ theme }) => theme.background.primary};
@@ -122,7 +123,7 @@ export default function Drives() {
 		setForm({ ...form, [e.target.name]: e.target.value });
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (editDrive) {
@@ -139,6 +140,17 @@ export default function Drives() {
 				return;
 			}
 
+			try {
+				const response = await axios.post(
+					`${import.meta.env.VITE_APP_API_URL}/vaccination-drives`,
+					form
+				);
+				if (response.data.status) {
+					alert("Drive created successfully.");
+				}
+			} catch (error) {
+				console.log(error);
+			}
 			const newDrive = {
 				...form,
 				id: Date.now(),

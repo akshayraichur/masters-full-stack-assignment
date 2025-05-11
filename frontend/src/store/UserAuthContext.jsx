@@ -5,6 +5,7 @@ export const UserContext = createContext();
 
 const UserAuthContext = ({ children }) => {
 	const [user, setUser] = useState(null);
+	const localStorageUser = localStorage.getItem("school_admin");
 
 	const loginHandler = (userData) => {
 		setUser(userData);
@@ -17,11 +18,16 @@ const UserAuthContext = ({ children }) => {
 	};
 
 	useEffect(() => {
-		if (!user) {
+		if (!localStorageUser) {
 			navigate("/login");
 			return;
 		}
-	}, [user]);
+
+		if (localStorageUser) {
+			navigate("/dashboard");
+			setUser({ name: localStorageUser });
+		}
+	}, [localStorageUser]);
 
 	return (
 		<UserContext.Provider value={{ user, setUser, loginHandler, logoutHandler }}>
