@@ -35,6 +35,7 @@ export default function Dashboard() {
 		totalStudents: 0,
 		vaccinatedStudents: 0,
 		upcomingDrives: 0,
+		vaccinationPercentage: 0,
 	});
 
 	const { user } = useContext(UserContext);
@@ -60,10 +61,42 @@ export default function Dashboard() {
 		}
 	};
 
-	useEffect(() => {
-		//
+	const fetchTotalStudents = async () => {
+		try {
+			const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/students/total`);
+			if (response.data.status) {
+				setDrivesInfo((prevState) => ({
+					...prevState,
+					totalStudents: response.data.totalStudentsCount,
+				}));
+			}
+		} catch (error) {
+			console.log(error);
+			setDrivesInfo((prevState) => ({ ...prevState, totalStudents: 0 }));
+		}
+	};
 
+	const fetchVaccinatedStudents = async () => {
+		try {
+			const response = await axios.get(
+				`${import.meta.env.VITE_APP_API_URL}/students/total-vaccinated`
+			);
+			if (response.data.status) {
+				setDrivesInfo((prevState) => ({
+					...prevState,
+					vaccinatedStudents: response.data.totalDosesGiven,
+					vaccinationPercentage: response.data.vaccinationPercentage,
+				}));
+			}
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
+	useEffect(() => {
 		fetchUpcomingDrives();
+		fetchTotalStudents();
+		fetchVaccinatedStudents();
 	}, []);
 
 	return (
@@ -72,15 +105,17 @@ export default function Dashboard() {
 			<MetricsGrid>
 				<MetricCard>
 					<h3>Total Students</h3>
-					<p>1200</p>
+					<p>{drivesInfo.totalStudents || 0}</p>
 				</MetricCard>
 				<MetricCard>
-					<h3>Vaccinated Students</h3>
-					<p>1043 (86.9%)</p>
+					<h3>Total Vaccination</h3>
+					<p>
+						{drivesInfo.vaccinatedStudents || 0} ({drivesInfo.vaccinationPercentage || 0}% )
+					</p>
 				</MetricCard>
 				<MetricCard>
 					<h3>Upcoming Drives</h3>
-					<p>{drivesInfo.upcomingDrives} drives in next 30 days</p>
+					<p>{drivesInfo.upcomingDrives || 0} drives in next 30 days</p>
 				</MetricCard>
 			</MetricsGrid>
 		</Wrapper>

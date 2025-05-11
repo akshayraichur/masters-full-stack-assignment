@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import styled from "styled-components";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../store/UserAuthContext";
 import axios from "axios";
+import { message } from "antd";
 
 const Wrapper = styled.div`
 	background: ${({ theme }) => theme.background.primary};
@@ -83,15 +86,8 @@ const Td = styled.td`
 `;
 
 export default function Drives() {
-	const { user } = React.useContext(UserContext);
+	const { user } = useContext(UserContext);
 	const navigate = useNavigate();
-
-	React.useEffect(() => {
-		if (!user) {
-			navigate("/login");
-			return;
-		}
-	}, [user]);
 
 	const [form, setForm] = useState({
 		name: "",
@@ -136,35 +132,65 @@ export default function Drives() {
 			const diffDays = scheduledDate.diff(today, "day");
 
 			if (diffDays < 15) {
-				alert("Drive must be scheduled at least 15 days in advance.");
+				message.error("Drive must be scheduled at least 15 days in advance.");
 				return;
 			}
 
 			try {
 				const response = await axios.post(
-					`${import.meta.env.VITE_APP_API_URL}/vaccination-drives`,
+					`${import.meta.env.VITE_APP_API_URL}/drives/create`,
 					form
 				);
 				if (response.data.status) {
-					alert("Drive created successfully.");
+					message.success("Drive created successfully.");
+					getVaccinationDrives();
+					setForm({ name: "", date: "", doses: "", classes: "" });
 				}
 			} catch (error) {
 				console.log(error);
+				message.error(error.response.data.message || "Something went wrong");
 			}
-			const newDrive = {
-				...form,
-				id: Date.now(),
-			};
-			setDrives([...drives, newDrive]);
-			alert("Drive created (simulated).");
-			setForm({ name: "", date: "", doses: "", classes: "" });
 		}
 	};
 
 	const handleEdit = (drive) => () => {
+		const driveDate = dayjs(drive.date, "DD-MM-YYYY");
+		const isPast = driveDate.isBefore(dayjs(), "day");
+
+		if (isPast) {
+			message.error("Drive date is in the past.");
+			return;
+		}
+
 		setForm(drive);
 		setEditDrive(true);
 	};
+
+	const getVaccinationDrives = async () => {
+		try {
+			const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/drives/upcoming`);
+			const responseData = response.data.data;
+			setDrives(
+				responseData.map((drive) => ({
+					id: drive.id,
+					name: drive.name,
+					date: dayjs(drive.date).format("DD-MM-YYYY"),
+					doses: drive.dosesCount,
+					classes: drive.applicableClasses.join(", ") || "All",
+				}))
+			);
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
+	useEffect(() => {
+		if (!user) {
+			navigate("/login");
+			return;
+		}
+		getVaccinationDrives();
+	}, [user]);
 
 	return (
 		<Wrapper>

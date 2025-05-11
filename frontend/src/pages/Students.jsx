@@ -84,35 +84,7 @@ export default function Students() {
 		class: "",
 	});
 	const [editStudent, setEditStudent] = useState(false);
-	const [columns, setColumns] = useState([
-		{
-			title: "ID",
-			dataIndex: "id",
-			key: "id",
-		},
-		{
-			title: "Name",
-			dataIndex: "name",
-			key: "name",
-		},
-		{
-			title: "Class",
-			dataIndex: "class",
-			key: "class",
-		},
-		{
-			title: "Vaccinated",
-			dataIndex: "vaccinated",
-			key: "vaccinated",
-			render: (vaccinated) => (vaccinated ? "✅" : "❌"),
-		},
-		{
-			title: "Actions",
-			dataIndex: "actions",
-			key: "actions",
-			render: (_, record) => <Button onClick={() => handleEdit(record)}>Edit</Button>,
-		},
-	]);
+	const [updateStudents, setUpdateStudents] = useState(false);
 
 	const handleChange = (e) => {
 		setForm({ ...form, [e.target.name]: e.target.value });
@@ -141,7 +113,7 @@ export default function Students() {
 			);
 
 			if (response.data.status) {
-				fetchStudents();
+				setUpdateStudents((p) => !p);
 				message.success("Student updated successfully");
 				setEditStudent(false);
 				setForm({ name: "", id: "", class: "" });
@@ -174,7 +146,7 @@ export default function Students() {
 				});
 
 				if (response.data.status) {
-					fetchStudents();
+					setUpdateStudents((p) => !p);
 					message.success("Student added successfully");
 					e.target.reset();
 				} else {
@@ -216,23 +188,11 @@ export default function Students() {
 			);
 
 			if (response.data.status) {
-				fetchStudents();
+				setUpdateStudents((p) => !p);
 				message.success("Students uploaded successfully");
 			}
 		} catch (error) {
 			message.error(error?.response?.data?.message || "Upload failed");
-		}
-	};
-
-	const fetchStudents = async () => {
-		try {
-			const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/students/`);
-
-			if (response.data.status) {
-				setStudents(response.data.students);
-			}
-		} catch (error) {
-			console.log(error);
 		}
 	};
 
@@ -293,7 +253,7 @@ export default function Students() {
 
 				{/* Students Table */}
 				{/* <Table columns={columns} dataSource={students} rowKey={(record) => record.id} /> */}
-				<StudentTable />
+				<StudentTable handleEdit={handleEdit} updateStudents={updateStudents} />
 			</FlexBox>
 		</Wrapper>
 	);

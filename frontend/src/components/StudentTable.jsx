@@ -2,30 +2,23 @@ import { useEffect, useState } from "react";
 import { Table, Button, message } from "antd";
 import axios from "axios";
 
-const StudentTable = () => {
+const StudentTable = ({ handleEdit, updateStudents }) => {
 	const [columns, setColumns] = useState([]);
 	const [students, setStudents] = useState([]);
 
 	useEffect(() => {
 		fetchColumnsAndStudents();
-	}, []);
-
-	// const handleEdit = async (student) => {
-	// 	setEditStudent(true);
-	// 	setForm({ ...student });
-	// };
+	}, [updateStudents]);
 
 	const fetchColumnsAndStudents = async () => {
 		try {
 			const [drivesRes, studentsRes] = await Promise.all([
-				// axios.get(`${import.meta.env.VITE_APP_API_URL}/vaccination-drives`), // returns ["COVID", "Hepatitis"]
-				Promise.resolve(["COVID", "Hepatitis"]),
-				axios.get(`${import.meta.env.VITE_APP_API_URL}/students/`), // returns array of students
+				axios.get(`${import.meta.env.VITE_APP_API_URL}/drives/upcoming`),
+				axios.get(`${import.meta.env.VITE_APP_API_URL}/students/`),
 			]);
 
-			const drives = drivesRes; // drivesRes.data;
+			const drives = drivesRes?.data?.data?.map((drive) => drive.name);
 			const studentData = studentsRes.data.students;
-			console.log(studentData);
 
 			// Base columns
 			const baseColumns = [
@@ -42,7 +35,7 @@ const StudentTable = () => {
 				render: (val, record) => (
 					<input
 						type='checkbox'
-						checked={!!val}
+						checked={record.vaccination_drives.includes(drive)}
 						onChange={() => handleToggleVaccination(record.id, drive, !val)}
 					/>
 				),
@@ -63,11 +56,6 @@ const StudentTable = () => {
 		}
 	};
 
-	const handleEdit = (student) => {
-		console.log("Edit clicked for:", student);
-		// Handle edit logic here
-	};
-
 	const handleToggleVaccination = async (studentId, driveName, newValue) => {
 		try {
 			await axios.put(`${import.meta.env.VITE_APP_API_URL}/students/vaccination/${studentId}`, {
@@ -79,7 +67,7 @@ const StudentTable = () => {
 			fetchColumnsAndStudents();
 		} catch (err) {
 			console.error(err);
-			message.error("Failed to update vaccination status");
+			message.error(err.response.data.message || "Failed to update vaccination status");
 		}
 	};
 
