@@ -20,8 +20,7 @@ const studentSchema = new mongoose.Schema({
 		default: false,
 	},
 	vaccination_drives: {
-		type: [mongoose.Schema.Types.ObjectId],
-		ref: "VaccinationDrive",
+		type: [String],
 		default: [],
 	},
 });

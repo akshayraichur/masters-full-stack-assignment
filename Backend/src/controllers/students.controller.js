@@ -2,6 +2,7 @@ const fs = require("fs");
 const csv = require("csv-parser");
 
 const StudentModel = require("../models/Students");
+const VaccinationDriveModel = require("../models/VaccinationDrives");
 
 const getStudents = async (req, res) => {
 	try {
@@ -99,25 +100,84 @@ const updateStudentByID = async (req, res) => {
 	}
 };
 
-// PUT /students/:id/vaccination
 const updateVaccinationStatus = async (req, res) => {
 	const { id } = req.params;
-	const { drive, status } = req.body;
+	const { drive } = req.body;
 
 	try {
-		const updatedStudent = await StudentModel.findOneAndUpdate(
-			{ id },
-			{ $set: { [`vaccinatedDrives.${drive}`]: status } },
-			{ new: true }
-		);
-
-		if (!updatedStudent) {
-			return res.status(404).json({ message: "Student not found" });
+		const student = await StudentModel.findOne({ id });
+		if (!student) {
+			return res.status(400).json({ message: "Student not found", status: false });
 		}
 
-		res.status(200).json({ message: "Vaccination status updated", student: updatedStudent });
+		const vaccinationDrive = await VaccinationDriveModel.findOne({ name: drive });
+		if (!vaccinationDrive) {
+			return res.status(400).json({ message: "Vaccination drive not found", status: false });
+		}
+
+		if (!vaccinationDrive.applicableClasses.includes(student.class)) {
+			return res.status(400).json({
+				message: "Vaccination drive not applicable to the student's class",
+				status: false,
+			});
+		}
+
+		if (student.vaccination_drives.includes(drive)) {
+			return res.status(400).json({
+				message: "Vaccination already recorded for this drive",
+				status: false,
+			});
+		}
+
+		student.vaccination_drives.push(drive);
+		student.vaccination_status = true;
+		await student.save();
+
+		res.status(200).json({ message: "Vaccination drive recorded", student });
 	} catch (err) {
-		res.status(500).json({ message: "Internal server error" });
+		res.status(500).json({ message: "Internal server error", error: err.message });
+	}
+};
+
+const getTotalStudents = async (_, res) => {
+	try {
+		const totalStudents = await StudentModel.find();
+		res.status(200).json({
+			message: "Total students fetched successfully",
+			totalStudents: totalStudents,
+			totalStudentsCount: totalStudents.length,
+			status: true,
+		});
+	} catch (error) {
+		res.status(500).json({ message: "Internal server error", error: error.message });
+	}
+};
+
+const getTotalStudentsVaccinated = async (_, res) => {
+	try {
+		const students = await StudentModel.find({}, "vaccination_drives"); // fetch only needed field
+		const drives = await VaccinationDriveModel.find({}, "dosesCount");
+
+		// Total doses given = sum of all vaccination_drives arrays
+		const totalDosesGiven = students.reduce(
+			(sum, student) => sum + student.vaccination_drives.length,
+			0
+		);
+
+		// Total planned doses = sum of all dosesCount
+		const totalPlannedDoses = drives.reduce((sum, drive) => sum + drive.dosesCount, 0);
+
+		const vaccinationPercentage =
+			totalPlannedDoses === 0 ? 0 : ((totalDosesGiven / totalPlannedDoses) * 100).toFixed(2);
+
+		res.status(200).json({
+			totalDosesGiven,
+			totalPlannedDoses,
+			vaccinationPercentage: `${vaccinationPercentage}%`,
+			status: true,
+		});
+	} catch (error) {
+		res.status(500).json({ message: "Internal server error", error: error.message });
 	}
 };
 
@@ -127,4 +187,6 @@ module.exports = {
 	bulkUploadStudents,
 	updateStudentByID,
 	updateVaccinationStatus,
+	getTotalStudents,
+	getTotalStudentsVaccinated,
 };
