@@ -1,5 +1,8 @@
 # Vaccination Management System  Design Document
 
+### Links
+Github: https://github.com/akshayraichur/masters-full-stack-assignment
+Recording: https://drive.google.com/file/d/1aeOibyDxYy0i1CRtkRIsuLaPjkaonEN9/view?usp=sharing
 
 Overview
 This system is designed to facilitate the management of vaccination drives within a school environment. It allows school coordinators to:
