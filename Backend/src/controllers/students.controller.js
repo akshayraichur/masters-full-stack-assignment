@@ -18,10 +18,8 @@ const getStudents = async (req, res) => {
 
 const addStudent = async (req, res) => {
 	const { name, id, class: studentClass } = req.body;
-	console.log("req.body: ", name, id, studentClass);
 	try {
 		const student = await StudentModel.create({ name, id, class: studentClass });
-		console.log("student: ", student);
 		if (!student) {
 			return res.status(400).json({ message: "Student not added", status: false });
 		}
@@ -92,7 +90,6 @@ const updateStudentByID = async (req, res) => {
 		}
 		res.status(200).json({ message: "Student updated successfully", student, status: true });
 	} catch (error) {
-		console.log("err: ", error);
 		if (error.code === 11000) {
 			return res.status(400).json({ message: "Student already exists", status: false });
 		}
