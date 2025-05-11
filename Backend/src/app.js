@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const authenticationRoutes = require("./routes/authentication.routes");
 require("dotenv").config();
+const vaccinationDrivesRoutes = require("./routes/vaccinationDrives.routes");
 
 const app = express();
 
@@ -13,8 +14,26 @@ app.use(
 	})
 );
 
+// headers for CORS
+app.use((req, res, next) => {
+	res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept, Authorization"
+	);
+	res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+	res.header("Access-Control-Allow-Credentials", "true");
+
+	// Handle preflight requests
+	if (req.method === "OPTIONS") {
+		return res.sendStatus(200);
+	}
+	next();
+});
+
 // Routes
 app.use("/auth", authenticationRoutes);
+app.use("/vaccination-drives", vaccinationDrivesRoutes);
 
 app.listen(3010, () => {
 	console.log("Server is running on port 3010");
