@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import { NavLink, useNavigate } from "react-router-dom";
+import { UserContext } from "../store/UserAuthContext";
 
 const NavbarWrapper = styled.nav`
 	background-color: ${({ theme }) => theme.background.card};
@@ -50,11 +51,13 @@ const LogoutButton = styled.button`
 `;
 
 export default function Navbar() {
+	const { user, logoutHandler } = useContext(UserContext);
 	const navigate = useNavigate();
 
 	const handleLogout = () => {
 		localStorage.clear();
-		navigate("/");
+		logoutHandler();
+		navigate("/login");
 	};
 
 	return (
@@ -65,7 +68,7 @@ export default function Navbar() {
 				<NavLink to='/students'>Students</NavLink>
 				<NavLink to='/drives'>Drives</NavLink>
 				<NavLink to='/reports'>Reports</NavLink>
-				<LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+				{user?.name ? <LogoutButton onClick={handleLogout}>Logout</LogoutButton> : null}
 			</NavItems>
 		</NavbarWrapper>
 	);

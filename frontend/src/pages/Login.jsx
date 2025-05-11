@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../store/UserAuthContext";
+import axios from "axios";
 
 const LoginWrapper = styled.div`
 	min-height: 100vh;
@@ -66,18 +68,32 @@ const Error = styled.p`
 `;
 
 export default function LoginPage() {
+	const { loginHandler } = React.useContext(UserContext);
 	const [username, setUsername] = useState("");
 	const [error, setError] = useState("");
 	const navigate = useNavigate();
 
-	const handleLogin = () => {
+	const handleLogin = async () => {
 		if (username.trim() === "") {
 			setError("Please enter your name to continue");
 			return;
 		}
 
-		localStorage.setItem("school_admin", username);
-		navigate("/dashboard");
+		// Make an api call here, and then save the users..
+		try {
+			const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/auth/login`, {
+				username,
+			});
+
+			if (response.data.status) {
+				localStorage.setItem("school_admin", username);
+				loginHandler({ name: username });
+				navigate("/dashboard");
+			}
+		} catch (error) {
+			console.log(error);
+			setError("Something went wrong, try again");
+		}
 	};
 
 	return (

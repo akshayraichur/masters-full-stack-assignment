@@ -42,7 +42,7 @@ export default function Dashboard() {
 
 	return (
 		<Wrapper>
-			<Title>Welcome, School Coordinator</Title>
+			<Title>Welcome, {user?.name}!</Title>
 			<MetricsGrid>
 				<MetricCard>
 					<h3>Total Students</h3>
